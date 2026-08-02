@@ -1,8 +1,8 @@
 # Django 商城项目（改进版）
-。
-
+这是基于我课程作业重新改进开发的线上商城系统，基于django框架，用ai辅助开发的项目
 ## 快速开始
 
+打开终端输入以下命令
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
