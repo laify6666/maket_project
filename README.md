@@ -11,8 +11,8 @@ python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
 ```
+（记得要安装python）```
 
-（记得要安装python）
 演示账号：
 
 - 买家：`buyer / buyer123456`
