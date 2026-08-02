@@ -1,7 +1,7 @@
 # Django 商城项目（改进版）
 这是基于我课程作业重新改进开发的线上商城系统，基于django框架，用ai辅助开发的项目
 ## 快速开始
-
+如果有便携版，则直接看便携包说明即可，若没有则
 打开终端输入以下命令
 ```bash
 python -m venv .venv
@@ -13,8 +13,10 @@ python manage.py runserver
 ```
 
 如果你的终端里没有 `python` 命令，也可以直接使用项目自带的
-`manage.bat`，例如：
+`manage.bat` ，但是用此方法需要我打包好的便携版（一个装好依赖的压缩包），由于文件大小限制无法发到github，所以便携版需要找我本人发送
+若无便携版请安装python执行上面的命令
 
+manage.bat常用的命令如下
 ```bash
 manage.bat migrate
 manage.bat seed_demo
