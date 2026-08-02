@@ -12,18 +12,7 @@ python manage.py seed_demo
 python manage.py runserver
 ```
 
-如果你的终端里没有 `python` 命令，也可以直接使用项目自带的
-`manage.bat` ，但是用此方法需要我打包好的便携版（一个装好依赖的压缩包），由于文件大小限制无法发到github，所以便携版需要找我本人发送
-若无便携版请安装python执行上面的命令
-
-manage.bat常用的命令如下
-```bash
-manage.bat migrate
-manage.bat seed_demo
-manage.bat createsuperuser
-manage.bat runserver
-```
-
+（记得要安装python）
 演示账号：
 
 - 买家：`buyer / buyer123456`
