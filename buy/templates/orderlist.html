@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}我的订单{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">My Orders</p>
+    <h1 class="page-title">我的订单</h1>
+</div>
+
+<div class="panel">
+    <div class="status-row">
+        <a class="chip {% if not request.GET.status %}active{% endif %}" href="{% url 'orderlist' %}">全部</a>
+        <a class="chip {% if request.GET.status == 'unpaid' %}active{% endif %}" href="{% url 'orderlist' %}?status=unpaid">待支付</a>
+        <a class="chip {% if request.GET.status == 'paid' %}active{% endif %}" href="{% url 'orderlist' %}?status=paid">已支付</a>
+        <a class="chip {% if request.GET.status == 'shipped' %}active{% endif %}" href="{% url 'orderlist' %}?status=shipped">已发货</a>
+        <a class="chip {% if request.GET.status == 'completed' %}active{% endif %}" href="{% url 'orderlist' %}?status=completed">已完成</a>
+        <a class="chip {% if request.GET.status == 'cancelled' %}active{% endif %}" href="{% url 'orderlist' %}?status=cancelled">已取消</a>
+        <a class="chip {% if request.GET.status == 'refunding' %}active{% endif %}" href="{% url 'orderlist' %}?status=refunding">退款中</a>
+        <a class="chip {% if request.GET.status == 'refunded' %}active{% endif %}" href="{% url 'orderlist' %}?status=refunded">已退款</a>
+    </div>
+</div>
+
+{% for order in orders_list %}
+<div class="panel order-card">
+    <div class="order-head">
+        <div>
+            <p class="order-no">订单 {{ order.order_no }}</p>
+            <p class="muted">卖家：{{ order.seller.shop_name|default:order.seller.username }}</p>
+        </div>
+        <span class="badge {% if order.status == 'unpaid' %}badge-wait{% elif order.status == 'paid' %}badge-paid{% elif order.status == 'shipped' %}badge-soft{% elif order.status == 'completed' %}badge-paid{% elif order.status == 'cancelled' %}badge-muted{% elif order.status == 'refunding' %}badge-rose{% else %}badge-danger{% endif %}">
+            {{ order.get_status_display }}
+        </span>
+    </div>
+
+    <div class="table-wrap mt-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>商品</th>
+                    <th>单价</th>
+                    <th>数量</th>
+                    <th class="text-right">小计</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>¥{{ item.price|floatformat:2 }}</td>
+                    <td>{{ item.number }}</td>
+                    <td class="text-right price">¥{{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex space-between mt-3">
+        <span class="price">实付 ¥{{ order.total_price|floatformat:2 }}</span>
+        <div class="flex">
+            <a class="btn btn-ghost btn-sm" href="{% url 'order_detail' order.order_no %}">订单详情</a>
+            {% if order.status == 'unpaid' %}
+                <a class="btn btn-accent btn-sm" href="{% url 'payon' order.order_no %}">去支付</a>
+                <form action="{% url 'cancel_order' %}" method="post"
+                      onsubmit="return confirm('确定取消订单？');">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_no" value="{{ order.order_no }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">取消订单</button>
+                </form>
+            {% elif order.status == 'paid' %}
+                <button class="btn btn-soft btn-sm" onclick="applyRefund('{{ order.order_no }}')">申请退款</button>
+            {% elif order.status == 'shipped' %}
+                <form action="{% url 'confirm_receipt' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_no" value="{{ order.order_no }}">
+                    <button class="btn btn-success btn-sm" type="submit">确认收货</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="panel empty-state">
+    <div class="empty-mark">单</div>
+    <p>暂无订单</p>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function applyRefund(orderNo) {
+        const reason = prompt('请填写退款原因：');
+        if (!reason || reason.trim() === '') {
+            alert('退款原因不能为空');
+            return;
+        }
+        fetch('{% url "refund" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({order_no: orderNo, reason: reason.trim()})
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message || '操作失败');
+            if (data.status === 'success') location.reload();
+        })
+        .catch(() => alert('网络异常'));
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-card { padding: 22px 24px; }
+    .order-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .order-no { font-weight: 700; margin: 0; }
+    .order-head p { margin: 2px 0; }
+    .empty-mark {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #ece9e2;
+        color: #aaa49a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+</style>
+{% endblock %}

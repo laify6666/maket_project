@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}卖家审核中{% endblock %}
+
+{% block content %}
+<div class="panel status-card">
+    <div class="auth-head">
+        <span class="brand-mark">审</span>
+        <h1>卖家账号审核中</h1>
+        <p>店铺「{{ shop_name|default:user.username }}」已提交，等待平台审核通过。</p>
+    </div>
+    <div class="text-center">
+        <a class="btn btn-ghost" href="{% url 'index' %}">返回首页</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-card { max-width: 560px; margin: 60px auto; }
+</style>
+{% endblock %}

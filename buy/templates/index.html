@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load query_utils %}
+
+{% block title %}在线商城 - 首页{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">Curated Selection</p>
+    <h1 class="page-title">发现今日好物</h1>
+    <p class="page-sub">柔和色调、安静布局，让每一次浏览都更轻松。</p>
+</div>
+
+<div class="panel">
+    <div class="status-row">
+        <a class="chip {% if not request.GET.cat and not request.GET.a and not request.GET.min %}active{% endif %}" href="{% url 'index' %}">全部</a>
+        <a class="chip {% if request.GET.cat == 'electronics' %}active{% endif %}" href="{% url 'category' %}?cat=electronics">电子产品</a>
+        <a class="chip {% if request.GET.cat == 'clothing' %}active{% endif %}" href="{% url 'category' %}?cat=clothing">服装配饰</a>
+        <a class="chip {% if request.GET.cat == 'food' %}active{% endif %}" href="{% url 'category' %}?cat=food">食品饮料</a>
+        <a class="chip {% if request.GET.cat == 'books' %}active{% endif %}" href="{% url 'category' %}?cat=books">图书文具</a>
+        <a class="chip {% if request.GET.cat == 'home' %}active{% endif %}" href="{% url 'category' %}?cat=home">家居生活</a>
+        <a class="chip {% if request.GET.cat == 'sports' %}active{% endif %}" href="{% url 'category' %}?cat=sports">运动户外</a>
+        <a class="chip {% if request.GET.cat == 'beauty' %}active{% endif %}" href="{% url 'category' %}?cat=beauty">美妆个护</a>
+    </div>
+    <div class="flex space-between mt-3">
+        <div class="status-row">
+            <a class="chip {% if not request.GET.a %}active{% endif %}" href="{% url 'index' %}">默认排序</a>
+            <a class="chip {% if request.GET.a == '1' %}active{% endif %}" href="{% url 'sort' %}?a=1">价格升序</a>
+            <a class="chip {% if request.GET.a == '3' %}active{% endif %}" href="{% url 'sort' %}?a=3">价格降序</a>
+            <a class="chip {% if request.GET.a == '2' %}active{% endif %}" href="{% url 'sort' %}?a=2">销量优先</a>
+        </div>
+        <div class="status-row">
+            <a class="chip" href="{% url 'price_filter' %}?min=0&max=50">50 元内</a>
+            <a class="chip" href="{% url 'price_filter' %}?min=50&max=100">50-100 元</a>
+            <a class="chip" href="{% url 'price_filter' %}?min=100&max=200">100-200 元</a>
+            <a class="chip" href="{% url 'price_filter' %}?min=200&max=500">200-500 元</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-4">
+    {% for item in goods %}
+    <article class="product-card">
+        <a href="{% url 'xq' %}?id={{ item.id }}">
+            {% if item.imgurl %}
+                <img class="product-thumb" src="{{ item.imgurl.url }}" alt="{{ item.name }}">
+            {% else %}
+                <div class="product-thumb placeholder">暂无图片</div>
+            {% endif %}
+        </a>
+        <div class="product-body">
+            <h3 class="product-name"><a href="{% url 'xq' %}?id={{ item.id }}">{{ item.name }}</a></h3>
+            <p class="product-meta">{{ item.get_category_display }} · 销量 {{ item.sales_volume }}</p>
+            <div class="product-footer">
+                <span class="price">¥{{ item.price|floatformat:2 }}</span>
+                {% if user.is_authenticated and user.role == 'buyer' %}
+                <form action="{% url 'caradd' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="goods_id" value="{{ item.id }}">
+                    <input type="hidden" name="number" value="1">
+                    <button class="btn btn-primary btn-sm" type="submit">加入购物车</button>
+                </form>
+                {% else %}
+                <span class="muted">库存 {{ item.stock }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-mark">空</div>
+        <p>暂无商品</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="pagination mt-3">
+    {% if goods.has_previous %}
+        <a class="page-btn" href="?{% url_replace page=1 %}">首页</a>
+        <a class="page-btn" href="?{% url_replace page=goods.previous_page_number %}">上一页</a>
+    {% endif %}
+    <span class="page-btn current">{{ goods.number }}</span>
+    {% if goods.has_next %}
+        <a class="page-btn" href="?{% url_replace page=goods.next_page_number %}">下一页</a>
+        <a class="page-btn" href="?{% url_replace page=goods.paginator.num_pages %}">末页</a>
+    {% endif %}
+</div>
+
+{% if hot_goods %}
+<div class="panel mt-3">
+    <h2 class="panel-title">热门推荐</h2>
+    <div class="grid grid-5">
+        {% for item in hot_goods %}
+        <a class="product-card" href="{% url 'xq' %}?id={{ item.id }}">
+            {% if item.imgurl %}
+                <img class="product-thumb" src="{{ item.imgurl.url }}" alt="{{ item.name }}">
+            {% endif %}
+            <div class="product-body">
+                <p class="product-name">{{ item.name }}</p>
+                <p class="price">¥{{ item.price|floatformat:2 }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if browse_list %}
+<div class="panel mt-3">
+    <h2 class="panel-title">浏览历史</h2>
+    <div class="grid grid-5">
+        {% for item in browse_list %}
+        <a class="product-card" href="{% url 'xq' %}?id={{ item.id }}">
+            {% if item.imgurl %}
+                <img class="product-thumb" src="{{ item.imgurl.url }}" alt="{{ item.name }}">
+            {% endif %}
+            <div class="product-body">
+                <p class="product-name">{{ item.name }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .empty-mark {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: #ece9e2;
+        color: #aaa49a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+</style>
+{% endblock %}

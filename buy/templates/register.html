@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}用户注册{% endblock %}
+
+{% block content %}
+<div class="panel auth-card">
+    <div class="auth-head">
+        <span class="brand-mark">商</span>
+        <h1>创建账号</h1>
+        <p>选择身份，开始你的购物或经营之旅</p>
+    </div>
+    <form action="{% url 'register' %}" method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label>注册身份</label>
+            <div class="radio-group">
+                <label><input type="radio" name="reg_role" value="buyer" checked> 买家</label>
+                <label><input type="radio" name="reg_role" value="seller"> 卖家</label>
+            </div>
+        </div>
+        <div class="field">
+            <label>用户名</label>
+            <input class="input" type="text" name="username" required>
+        </div>
+        <div class="field">
+            <label>手机号</label>
+            <input class="input" type="text" name="phone">
+        </div>
+        <div class="field" id="shopGroup" style="display:none;">
+            <label>店铺名称</label>
+            <input class="input" type="text" name="shop_name">
+        </div>
+        <div class="field">
+            <label>密码（至少 8 位）</label>
+            <input class="input" type="password" name="password" required>
+        </div>
+        <div class="field">
+            <label>确认密码</label>
+            <input class="input" type="password" name="password2" required>
+        </div>
+        {% if msg %}<p class="text-danger">{{ msg }}</p>{% endif %}
+        <button class="btn btn-primary btn-block btn-lg" type="submit">立即注册</button>
+        <p class="text-center muted mt-3">已有账号？<a href="{% url 'denglu' %}">去登录</a></p>
+        <p class="text-center muted">卖家账号注册后需平台审核。</p>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('input[name="reg_role"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            document.getElementById('shopGroup').style.display =
+                this.value === 'seller' ? 'block' : 'none';
+        });
+    });
+</script>
+{% endblock %}

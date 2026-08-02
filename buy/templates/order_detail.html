@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}订单详情{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">Order Detail</p>
+    <h1 class="page-title">订单详情</h1>
+</div>
+
+<div class="grid grid-2">
+    <div class="panel">
+        <h2 class="panel-title">订单信息</h2>
+        <div class="info-list">
+            <div class="info-item"><span class="info-label">订单号</span><span class="info-value">{{ order.order_no }}</span></div>
+            <div class="info-item"><span class="info-label">状态</span><span class="badge badge-paid">{{ order.get_status_display }}</span></div>
+            <div class="info-item"><span class="info-label">卖家</span><span class="info-value">{{ order.seller.shop_name|default:order.seller.username }}</span></div>
+            <div class="info-item"><span class="info-label">收货人</span><span class="info-value">{{ order.receiver_name }}</span></div>
+            <div class="info-item"><span class="info-label">电话</span><span class="info-value">{{ order.receiver_phone }}</span></div>
+            <div class="info-item"><span class="info-label">地址</span><span class="info-value">{{ order.address }}</span></div>
+            {% if order.tracking_no %}
+            <div class="info-item"><span class="info-label">物流单号</span><span class="info-value">{{ order.tracking_no }}</span></div>
+            {% endif %}
+        </div>
+        <div class="flex mt-3">
+            <a class="btn btn-ghost btn-sm" href="{% url 'orderlist' %}">返回订单列表</a>
+            {% if order.status == 'unpaid' %}
+                <a class="btn btn-accent btn-sm" href="{% url 'payon' order.order_no %}">去支付</a>
+                <form action="{% url 'cancel_order' %}" method="post"
+                      onsubmit="return confirm('确定取消订单？');">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_no" value="{{ order.order_no }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">取消订单</button>
+                </form>
+            {% elif order.status == 'shipped' %}
+                <form action="{% url 'confirm_receipt' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_no" value="{{ order.order_no }}">
+                    <button class="btn btn-success btn-sm" type="submit">确认收货</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2 class="panel-title">商品明细</h2>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>商品</th>
+                        <th>单价</th>
+                        <th>数量</th>
+                        <th class="text-right">小计</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>¥{{ item.price|floatformat:2 }}</td>
+                        <td>{{ item.number }}</td>
+                        <td class="text-right price">¥{{ item.total_price|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-right price mt-3">订单总额 ¥{{ order.total_price|floatformat:2 }}</p>
+    </div>
+</div>
+
+{% if order.status == 'unpaid' or order.status == 'paid' %}
+<div class="panel">
+    <h2 class="panel-title">修改收货信息</h2>
+    <div class="grid grid-3">
+        <div class="field">
+            <label>收货人</label>
+            <input class="input" id="addrReceiver" value="{{ order.receiver_name }}">
+        </div>
+        <div class="field">
+            <label>电话</label>
+            <input class="input" id="addrPhone" value="{{ order.receiver_phone }}">
+        </div>
+        <div class="field">
+            <label>详细地址</label>
+            <input class="input" id="addrDetail" value="{{ order.address }}">
+        </div>
+    </div>
+    <button class="btn btn-primary" id="saveAddrBtn">保存修改</button>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if order.status == 'unpaid' or order.status == 'paid' %}
+<script>
+    document.getElementById('saveAddrBtn').addEventListener('click', function () {
+        const csrf = '{{ csrf_token }}';
+        fetch('{% url "update_address_before_ship" %}', {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrf},
+            body: new URLSearchParams({
+                order_no: '{{ order.order_no }}',
+                receiver_name: document.getElementById('addrReceiver').value,
+                receiver_phone: document.getElementById('addrPhone').value,
+                new_address: document.getElementById('addrDetail').value
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message || (data.status === 'success' ? '保存成功' : '保存失败'));
+            if (data.status === 'success') location.reload();
+        })
+        .catch(() => alert('网络异常'));
+    });
+</script>
+{% endif %}
+{% endblock %}

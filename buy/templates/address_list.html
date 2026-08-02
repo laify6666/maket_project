@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}收货地址管理{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">Address Book</p>
+    <h1 class="page-title">收货地址管理</h1>
+</div>
+
+<div class="grid grid-2">
+    <div>
+        <div class="grid grid-2">
+            {% for addr in addresses %}
+            <div class="panel address-card {% if addr.is_default %}default{% endif %}">
+                <div class="flex space-between">
+                    <strong>{{ addr.receiver_name }}</strong>
+                    {% if addr.is_default %}<span class="badge badge-paid">默认</span>{% endif %}
+                </div>
+                <p class="muted">{{ addr.phone }}</p>
+                <p class="muted">{{ addr.full_address }}</p>
+                <div class="flex mt-2">
+                    {% if not addr.is_default %}
+                    <form action="{% url 'set_default_address' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ addr.id }}">
+                        <button class="btn btn-ghost btn-sm" type="submit">设默认</button>
+                    </form>
+                    {% endif %}
+                    <form action="{% url 'delete_address' %}" method="post"
+                          onsubmit="return confirm('确定删除？');">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ addr.id }}">
+                        <button class="btn btn-danger btn-sm" type="submit">删除</button>
+                    </form>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <p>暂无地址</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2 class="panel-title">新增地址</h2>
+        <form action="{% url 'add_address' %}" method="post">
+            {% csrf_token %}
+            <div class="field"><label>收货人</label><input class="input" type="text" name="receiver_name" required></div>
+            <div class="field"><label>电话</label><input class="input" type="text" name="phone" required></div>
+            <div class="grid grid-3">
+                <div class="field"><label>省份</label><input class="input" type="text" name="province"></div>
+                <div class="field"><label>城市</label><input class="input" type="text" name="city"></div>
+                <div class="field"><label>区县</label><input class="input" type="text" name="district"></div>
+            </div>
+            <div class="field"><label>详细地址</label><input class="input" type="text" name="detail" required></div>
+            <div class="field">
+                <label class="flex"><input type="checkbox" name="is_default"> 设为默认地址</label>
+            </div>
+            <button class="btn btn-primary" type="submit">保存地址</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .address-card { margin: 0; }
+    .address-card p { margin: 2px 0; font-size: 13px; }
+</style>
+{% endblock %}

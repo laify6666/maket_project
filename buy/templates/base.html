@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}在线商城{% endblock %}</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'a1.png' %}">
+    <style>
+        :root {
+            --bg: #f4f3ef;
+            --surface: #ffffff;
+            --ink: #2e3a38;
+            --muted: #7c8683;
+            --line: #e7e3da;
+            --primary: #7a9e8e;
+            --primary-dark: #5c7f70;
+            --primary-soft: #e7f0eb;
+            --accent: #d98c7f;
+            --accent-dark: #bd6f63;
+            --accent-soft: #faeae6;
+            --blue: #8aa8c2;
+            --blue-soft: #e9f0f6;
+            --amber: #d9a25f;
+            --amber-soft: #faf0e2;
+            --danger: #c96f64;
+            --danger-soft: #fbeae7;
+            --radius: 8px;
+            --shadow: 0 10px 30px rgba(46, 58, 56, 0.08);
+            --shadow-sm: 0 2px 10px rgba(46, 58, 56, 0.05);
+            --font: "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        a { color: var(--primary-dark); text-decoration: none; }
+        a:hover { color: var(--accent-dark); }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .header-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 0;
+        }
+
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .search-form {
+            flex: 1;
+            min-width: 220px;
+            max-width: 400px;
+            display: flex;
+        }
+
+        .search-input {
+            flex: 1;
+            height: 40px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-right: none;
+            border-radius: 999px 0 0 999px;
+            background: #fff;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .search-input:focus { border-color: var(--primary); }
+
+        .search-btn {
+            width: 52px;
+            border: 1px solid var(--primary);
+            border-left: none;
+            border-radius: 0 999px 999px 0;
+            background: var(--primary);
+            color: #fff;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .search-btn:hover { background: var(--primary-dark); }
+
+        .nav-links {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .nav-link {
+            padding: 8px 14px;
+            border-radius: 999px;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-link:hover { background: var(--primary-soft); color: var(--primary-dark); }
+        .nav-link.active { background: var(--primary-soft); color: var(--primary-dark); }
+        .nav-link.rose { color: var(--accent-dark); }
+        .nav-link.rose:hover { background: var(--accent-soft); color: var(--accent-dark); }
+        .welcome { color: var(--muted); font-size: 14px; }
+        .cart-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .messages { max-width: 1180px; margin: 16px auto 0; padding: 0 24px; }
+        .msg {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+        .msg.success { background: var(--primary-soft); color: var(--primary-dark); border-color: #cfdfd5; }
+        .msg.error { background: var(--danger-soft); color: var(--danger); border-color: #f2cfca; }
+        .msg.warning { background: var(--amber-soft); color: #a8772f; border-color: #ecd7b6; }
+
+        .site-main {
+            max-width: 1180px;
+            margin: 24px auto;
+            padding: 0 24px;
+            min-height: 62vh;
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            padding: 22px 24px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            background: #fff;
+        }
+
+        .page-head { margin-bottom: 22px; }
+        .page-kicker {
+            color: var(--accent-dark);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: uppercase;
+            margin: 0 0 6px;
+        }
+        .page-title { font-size: 28px; font-weight: 700; margin: 0; letter-spacing: 0; }
+        .page-sub { color: var(--muted); margin: 8px 0 0; }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 0 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title .glyphicon { color: var(--primary); }
+
+        .grid { display: grid; gap: 18px; }
+        .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+        @media (max-width: 900px) {
+            .grid-4, .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 560px) {
+            .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
+            .header-inner { padding: 12px 16px; }
+            .site-main { padding: 0 16px; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--font);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.12s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); color: #fff; }
+        .btn-accent { background: var(--accent); color: #fff; }
+        .btn-accent:hover { background: var(--accent-dark); color: #fff; }
+        .btn-ghost { background: #fff; border-color: var(--line); color: var(--ink); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary-dark); background: var(--primary-soft); }
+        .btn-success { background: var(--primary-soft); color: var(--primary-dark); }
+        .btn-success:hover { background: var(--primary); color: #fff; }
+        .btn-danger { background: var(--danger-soft); color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+        .btn-soft { background: var(--blue-soft); color: #52708a; }
+        .btn-soft:hover { background: var(--blue); color: #fff; }
+        .btn-sm { padding: 7px 13px; font-size: 13px; }
+        .btn-lg { padding: 14px 24px; font-size: 16px; width: 100%; }
+        .btn-block { width: 100%; }
+
+        .field { margin-bottom: 16px; }
+        .field label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+        .input, .select, .textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #fff;
+            color: var(--ink);
+            font-size: 14px;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .input:focus, .select:focus, .textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(122, 158, 142, 0.16);
+        }
+        .textarea { min-height: 110px; resize: vertical; }
+        .radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #fff;
+        }
+        .table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .table th {
+            background: #faf9f6;
+            color: var(--muted);
+            text-align: left;
+            padding: 13px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1eee8;
+            vertical-align: middle;
+        }
+        .table tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover { background: #fbfaf7; }
+        .table .text-right { text-align: right; }
+        .table .text-center { text-align: center; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .badge-soft { background: var(--blue-soft); color: #52708a; }
+        .badge-paid { background: var(--primary-soft); color: var(--primary-dark); }
+        .badge-wait { background: var(--amber-soft); color: #a8772f; }
+        .badge-rose { background: var(--accent-soft); color: var(--accent-dark); }
+        .badge-muted { background: #f0efec; color: var(--muted); }
+        .badge-danger { background: var(--danger-soft); color: var(--danger); }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--muted);
+        }
+        .empty-state .glyphicon {
+            font-size: 34px;
+            color: #cfcbc1;
+            margin-bottom: 12px;
+        }
+        .empty-state p { margin: 0; }
+
+        .price { color: var(--accent-dark); font-weight: 700; }
+        .muted { color: var(--muted); }
+        .text-danger { color: var(--danger); }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mt-2 { margin-top: 10px; }
+        .mt-3 { margin-top: 16px; }
+        .flex { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .space-between { justify-content: space-between; }
+
+        .auth-card {
+            max-width: 460px;
+            margin: 36px auto;
+        }
+        .auth-head { text-align: center; margin-bottom: 24px; }
+        .auth-head .brand-mark { width: 48px; height: 48px; font-size: 20px; }
+        .auth-head h1 { font-size: 24px; margin: 14px 0 6px; }
+        .auth-head p { color: var(--muted); margin: 0; }
+
+        .product-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+        .product-thumb {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            object-fit: cover;
+            background: #f1efe9;
+        }
+        .product-thumb.placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b8b2a7;
+            font-size: 13px;
+        }
+        .product-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .product-name { font-weight: 700; margin: 0; font-size: 15px; }
+        .product-meta { color: var(--muted); font-size: 13px; }
+        .product-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+        .status-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip {
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        .pagination { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .page-btn {
+            min-width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .page-btn.current { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .page-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+
+        .info-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .info-item { display: flex; gap: 12px; font-size: 14px; }
+        .info-label { color: var(--muted); min-width: 86px; }
+        .info-value { color: var(--ink); font-weight: 600; }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+<header class="site-header">
+    <div class="header-inner">
+        <a class="brand" href="{% url 'index' %}">
+            <span class="brand-mark">商</span>
+            在线商城
+        </a>
+        <form class="search-form" action="{% url 'seek' %}" method="post">
+            {% csrf_token %}
+            <input class="search-input" type="text" name="name" placeholder="搜索商品" value="{{ keyword|default:'' }}">
+            <button class="search-btn" type="submit" aria-label="搜索">↵</button>
+        </form>
+        <nav class="nav-links">
+            {% if user.is_authenticated %}
+                <span class="welcome">你好，{{ user.username }}</span>
+                {% if user.role == 'buyer' %}
+                    <a class="nav-link" href="{% url 'orderlist' %}">我的订单</a>
+                    <a class="nav-link" href="{% url 'carlist' %}">购物车 <span class="cart-count">{{ cart_count }}</span></a>
+                    <a class="nav-link rose" href="{% url 'my_collect' %}">收藏</a>
+                    <a class="nav-link" href="{% url 'user_center' %}">个人中心</a>
+                {% elif user.role == 'seller' %}
+                    <a class="nav-link" href="{% url 'seller_goods_list' %}">商品管理</a>
+                    <a class="nav-link rose" href="{% url 'seller_orders' %}">订单管理</a>
+                {% endif %}
+                <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                    {% csrf_token %}
+                    <button class="nav-link" type="submit">退出</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'denglu' %}">登录</a>
+                <a class="nav-link active" href="{% url 'register' %}">注册</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<main class="site-main">
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">在线商城 · 温和而精致的购物体验</footer>
+
+<script>
+    if (document.getElementById('cartCount')) {
+        fetch('{% url "get_cart_count" %}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('cartCount').innerText = data.count;
+                }
+            })
+            .catch(() => {});
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

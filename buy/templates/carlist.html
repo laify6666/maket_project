@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}我的购物车{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">Shopping Cart</p>
+    <h1 class="page-title">我的购物车</h1>
+</div>
+
+<div class="checkout-grid">
+    <div>
+        <div class="panel">
+            <h2 class="panel-title">收货地址</h2>
+            <div class="grid grid-2">
+                {% for addr in addresses %}
+                <div class="address-card {% if addr.is_default %}default{% endif %}">
+                    <div class="flex space-between">
+                        <strong>{{ addr.receiver_name }}</strong>
+                        {% if addr.is_default %}<span class="badge badge-paid">默认</span>{% endif %}
+                    </div>
+                    <p class="muted">{{ addr.phone }}</p>
+                    <p class="muted">{{ addr.full_address }}</p>
+                    <div class="flex mt-2">
+                        {% if not addr.is_default %}
+                        <form action="{% url 'set_default_address' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ addr.id }}">
+                            <button class="btn btn-ghost btn-sm" type="submit">设默认</button>
+                        </form>
+                        {% endif %}
+                        <form action="{% url 'delete_address' %}" method="post"
+                              onsubmit="return confirm('确定删除该地址？');">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ addr.id }}">
+                            <button class="btn btn-danger btn-sm" type="submit">删除</button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <p>还没有收货地址</p>
+                    <a class="btn btn-soft btn-sm" href="{% url 'address_list' %}">去添加地址</a>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="mt-3"><a class="btn btn-ghost btn-sm" href="{% url 'address_list' %}">管理全部地址</a></p>
+        </div>
+
+        <div class="panel">
+            <h2 class="panel-title">商品清单</h2>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>商品</th>
+                            <th>单价</th>
+                            <th>数量</th>
+                            <th class="text-right">小计</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in carlist %}
+                        <tr>
+                            <td><a href="{% url 'xq' %}?id={{ item.goods.id }}">{{ item.goods.name }}</a></td>
+                            <td>¥{{ item.price|floatformat:2 }}</td>
+                            <td>
+                                <div class="qty-control">
+                                    <form action="{% url 'cart_change_num' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <input type="hidden" name="op" value="sub">
+                                        <button class="qty-btn" type="submit">−</button>
+                                    </form>
+                                    <span>{{ item.number }}</span>
+                                    <form action="{% url 'cart_change_num' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="id" value="{{ item.id }}">
+                                        <input type="hidden" name="op" value="add">
+                                        <button class="qty-btn" type="submit">＋</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td class="text-right price">¥{{ item.total_price|floatformat:2 }}</td>
+                            <td class="text-center">
+                                <form action="{% url 'cardel' %}" method="post"
+                                      onsubmit="return confirm('确定删除？');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="id" value="{{ item.id }}">
+                                    <button class="btn btn-danger btn-sm" type="submit">删除</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <p>购物车为空</p>
+                                    <a class="btn btn-ghost btn-sm" href="{% url 'index' %}">去逛逛</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel summary-card">
+        <h2 class="panel-title">订单摘要</h2>
+        <div class="summary-row"><span>商品件数</span><span>{{ carlist|length }} 项</span></div>
+        <div class="summary-row total"><span>合计</span><span>¥{{ sumprice|floatformat:2 }}</span></div>
+        <form action="{% url 'create_order' %}" method="post" class="mt-3">
+            {% csrf_token %}
+            <div class="field">
+                <label>选择收货地址</label>
+                <select class="select" id="addressSelect">
+                    <option value="">请选择地址</option>
+                    {% for addr in addresses %}
+                    <option value="{{ addr.id }}" {% if addr.is_default %}selected{% endif %}>
+                        {{ addr.receiver_name }} | {{ addr.full_address }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <input type="hidden" name="address_id" id="address_id">
+            <button class="btn btn-accent btn-block btn-lg" type="submit">去结算</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const addressSelect = document.getElementById('addressSelect');
+    const addressId = document.getElementById('address_id');
+    if (addressSelect) {
+        addressId.value = addressSelect.value;
+        addressSelect.addEventListener('change', function () {
+            addressId.value = this.value;
+        });
+    }
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+    .address-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        background: #fcfbf9;
+    }
+    .address-card.default { background: var(--primary-soft); border-color: #cbdcd2; }
+    .address-card p { margin: 2px 0; font-size: 13px; }
+    .qty-control { display: inline-flex; align-items: center; gap: 10px; }
+    .qty-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        cursor: pointer;
+        font-size: 15px;
+        line-height: 1;
+    }
+    .qty-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
+    .summary-card { position: sticky; top: 90px; }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        color: var(--muted);
+    }
+    .summary-row.total {
+        border-top: 1px solid var(--line);
+        margin-top: 8px;
+        padding-top: 14px;
+        color: var(--ink);
+        font-size: 18px;
+        font-weight: 700;
+    }
+    .summary-row.total span:last-child { color: var(--accent-dark); }
+    @media (max-width: 820px) {
+        .checkout-grid { grid-template-columns: 1fr; }
+        .summary-card { position: static; }
+    }
+</style>
+{% endblock %}

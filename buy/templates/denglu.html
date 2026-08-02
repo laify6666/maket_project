@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}账号登录{% endblock %}
+
+{% block content %}
+<div class="panel auth-card">
+    <div class="auth-head">
+        <span class="brand-mark">商</span>
+        <h1>欢迎回来</h1>
+        <p>登录后继续你的购物车与订单</p>
+    </div>
+    <form action="{% url 'denglu' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next|default:'/' }}">
+        <div class="field">
+            <label>登录身份</label>
+            <div class="radio-group">
+                <label><input type="radio" name="login_type" value="buyer" checked> 买家登录</label>
+                <label><input type="radio" name="login_type" value="seller"> 卖家登录</label>
+            </div>
+        </div>
+        <div class="field">
+            <label>用户名</label>
+            <input class="input" type="text" name="username" required>
+        </div>
+        <div class="field">
+            <label>密码</label>
+            <input class="input" type="password" name="password" required>
+        </div>
+        {% if msg %}<p class="text-danger">{{ msg }}</p>{% endif %}
+        <button class="btn btn-primary btn-block btn-lg" type="submit">立即登录</button>
+        <p class="text-center muted mt-3">还没有账号？<a href="{% url 'register' %}">立即注册</a></p>
+    </form>
+</div>
+{% endblock %}

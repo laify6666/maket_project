@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}{{ goods.name }} - 商品详情{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <p class="page-kicker">Product Detail</p>
+    <h1 class="page-title">{{ goods.name }}</h1>
+</div>
+
+<div class="grid grid-2">
+    <div class="panel">
+        {% if goods.imgurl %}
+            <img class="detail-img" src="{{ goods.imgurl.url }}" alt="{{ goods.name }}">
+        {% else %}
+            <div class="detail-img placeholder">暂无图片</div>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="flex space-between">
+            <span class="badge badge-soft">{{ goods.get_category_display }}</span>
+            <span class="badge badge-paid">销量 {{ goods.sales_volume }}</span>
+        </div>
+        <h2 class="detail-name">{{ goods.name }}</h2>
+        <p class="detail-price">¥{{ goods.price|floatformat:2 }} <span class="muted">/ {{ goods.weight }}</span></p>
+        <p class="muted">库存 {{ goods.stock }} 件</p>
+        <p class="detail-desc">{{ goods.goodsdesc|default:"暂无商品简介" }}</p>
+
+        {% if error %}
+            <p class="text-danger">{{ error }}</p>
+        {% endif %}
+
+        {% if user.is_authenticated and user.role == 'buyer' %}
+        <div class="flex mt-3">
+            <button class="btn {% if is_collect %}btn-accent{% else %}btn-ghost{% endif %}" id="collectBtn" data-gid="{{ goods.id }}">
+                {% if is_collect %}已收藏{% else %}收藏商品{% endif %}
+            </button>
+            <form action="{% url 'caradd' %}" method="post" class="flex">
+                {% csrf_token %}
+                <input type="hidden" name="goods_id" value="{{ goods.id }}">
+                <input class="input qty-input" type="number" name="number" min="1" max="{{ goods.stock }}" value="1">
+                <button class="btn btn-primary" type="submit">加入购物车</button>
+            </form>
+        </div>
+        {% else %}
+        <p class="mt-3"><a class="btn btn-primary" href="{% url 'denglu' %}">登录买家账号后购买</a></p>
+        {% endif %}
+
+        <div class="flex mt-3">
+            <a class="btn btn-ghost btn-sm" href="{% url 'index' %}">返回首页</a>
+            <a class="btn btn-ghost btn-sm" href="{% url 'carlist' %}">购物车</a>
+            <a class="btn btn-ghost btn-sm" href="{% url 'orderlist' %}">我的订单</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated and user.role == 'buyer' %}
+<script>
+    document.getElementById('collectBtn').addEventListener('click', function () {
+        const btn = this;
+        const csrf = '{{ csrf_token }}';
+        fetch('{% url "collect_add" %}', {
+            method: 'POST',
+            headers: {'X-CSRFToken': csrf},
+            body: new URLSearchParams({gid: btn.dataset.gid})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'add') {
+                btn.textContent = '已收藏';
+                btn.classList.remove('btn-ghost');
+                btn.classList.add('btn-accent');
+            } else if (data.status === 'del') {
+                btn.textContent = '收藏商品';
+                btn.classList.remove('btn-accent');
+                btn.classList.add('btn-ghost');
+            } else if (data.status === 'nologin') {
+                location.href = '{% url "denglu" %}';
+            }
+        })
+        .catch(() => alert('操作失败'));
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-img {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        border-radius: var(--radius);
+        display: block;
+    }
+    .detail-img.placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #efede7;
+        color: #b5afa4;
+        font-size: 16px;
+    }
+    .detail-name { font-size: 24px; margin: 16px 0 8px; }
+    .detail-price { font-size: 26px; font-weight: 700; color: var(--accent-dark); margin: 0 0 8px; }
+    .detail-desc { color: var(--muted); line-height: 1.9; }
+    .qty-input { width: 84px; text-align: center; }
+</style>
+{% endblock %}
