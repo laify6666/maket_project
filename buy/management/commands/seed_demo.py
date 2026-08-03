@@ -8,6 +8,20 @@ class Command(BaseCommand):
     help = "Create demo buyer and approved seller accounts only (no sample goods)."
 
     def handle(self, *args, **options):
+        admin_user, created_admin = User.objects.get_or_create(
+            username="admin",
+            defaults={
+                "role": "buyer",
+                "is_staff": True,
+                "is_superuser": True,
+            },
+        )
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        if created_admin:
+            admin_user.set_password("admin123456")
+        admin_user.save()
+
         seller, created_seller = User.objects.get_or_create(
             username="seller",
             defaults={
@@ -33,5 +47,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Accounts ready."))
         self.stdout.write("No goods were created; add products from the seller dashboard.")
+        self.stdout.write("admin / admin123456")
         self.stdout.write("buyer / buyer123456")
         self.stdout.write("seller / seller123456")
