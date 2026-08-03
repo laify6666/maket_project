@@ -1,8 +1,7 @@
 # Django 商城项目（改进版）
 这是基于我课程作业重新改进开发的线上商城系统，基于django框架，用ai辅助开发的项目
 ## 快速开始
-如果有便携版，则直接看便携包说明即可，若没有则
-打开终端输入以下命令
+方法一：
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
@@ -11,7 +10,6 @@ python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
 ```
-（记得要安装python）
 
 演示账号：
 
@@ -25,7 +23,8 @@ python manage.py check
 python manage.py test buy
 python manage.py release_expired_orders --minutes 30
 ```
-
+方法二：
+双击MarketShop.exe等待30s左右自动启动服务器并创建数据库和演示账户
 ## 改进要点
 
 - 新增 `MEDIA_ROOT/MEDIA_URL`，商品图片独立存放于 `media/goods/`。
